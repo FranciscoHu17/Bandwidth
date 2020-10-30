@@ -1,10 +1,9 @@
-import java.util.*;
-
 public class GraphSearch {
     private Node nodes[];
     private boolean finished = false;
     private int minBandwidth;
     private Node minmaxBandwidth[];
+    private int currMax;
 
     /**
      * Initializes GraphSearch fields
@@ -14,14 +13,19 @@ public class GraphSearch {
     public GraphSearch(Node nodes[]) {
         this.nodes = nodes;
         minBandwidth = nodes.length;
+        minmaxBandwidth = new Node[nodes.length];
+        currMax = 0;
     }
 
     void backtrack(Node solution[], int used[], int currIndex, int n) {
         Node candidates[] = new Node[solution.length - currIndex - 1]; /* max candidates for next position */
 
         // If able to endAttempt (because maxLength >= minBandwidth):
-        // then test next candidate
+        //     test next candidate
+
         if (currIndex != -1 && endAttempt(solution, used, currIndex)) {
+            //System.out.print("END Attempt: ");
+            //printArray(solution);
             return;
         }
 
@@ -32,17 +36,33 @@ public class GraphSearch {
             int nc = construct_candidates(used, currIndex, candidates, n);
             // printArray(solution);
 
-            for (int i = 0; i < nc; i++) {
-                solution[currIndex] = candidates[i];
-                used[candidates[i].getID() - 1] = currIndex; // Make move
+            for (int candIndex = 0; candIndex < nc; candIndex++) {
+                makeMove(solution, candidates, used, currIndex, candIndex);
                 backtrack(solution, used, currIndex, n);
-                used[candidates[i].getID() - 1] = -1; // Unmake move
+                unmakeMove(solution, candidates, used, currIndex, candIndex);
                 if (finished) {
-                    finished = false;
                     return; /* terminate early */
                 }
             }
         }
+    }
+
+    /**
+     * Abandon the partial solution if max length exceeds or equal to the minimum
+     * bandwidth previously found
+     * 
+     * @param solution
+     * @param used
+     * @param currIndex
+     * @return
+     */
+    public boolean endAttempt(Node solution[], int used[], int currIndex) {
+        int maxLength = findMaxLength(used, solution[currIndex], currIndex);
+        
+        if (maxLength >= minBandwidth) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -65,7 +85,7 @@ public class GraphSearch {
 
             // If the connected node is in partial solutions[] and it is bigger
             // than current length:
-            // Find the length from curr node to connected node
+            //     Find the length from curr node to connected node
             if (solutionsIndex != -1 && currIndex - solutionsIndex > maxLength) {
                 maxLength = currIndex - solutionsIndex;
             }
@@ -74,18 +94,47 @@ public class GraphSearch {
         return maxLength;
     }
 
+    public boolean is_a_solution(Node solution[], int used[], int currIndex, int n) {
+        if (currIndex == solution.length - 1){
+            return true;
+            //return maxBandwidth(solution, used) < minBandwidth;
+        }
+        return false;
+
+    }
+
+    private void process_solution(Node[] a, int used[], int n) {
+        int bandwidth = maxBandwidth(a, used);
+        System.out.println("------------------------");
+        System.out.println(findMaxLength(used, a[a.length-1], a.length-1));
+        System.out.print("Curr array: ");
+        printArray(a);
+        if (bandwidth < minBandwidth) {
+ 
+            minBandwidth = bandwidth;
+            minmaxBandwidth = a.clone();
+        }
+
+        if (minBandwidth == 1) {
+            finished = true;
+        }
+        System.out.println("Min bandwidth: " + minBandwidth);
+        
+        
+    }
+
+    /**
+     * Finds the max bandwidth in the fully processed solution
+     * 
+     * @param solution 
+     * @param used
+     * @return
+     */
     public int maxBandwidth(Node solution[], int used[]) {
         int max = 0;
-        // DEPRECATED
-        /*
-         * for (int i = 0; i < a.length; i++) { int dist = 0; for (int j = 0; j <
-         * a.length; j++) { if (i != j && dist < Math.abs(j - i) &&
-         * a[i].isConnected(a[j])) { dist = Math.abs(j - i); } } if (dist > max) max =
-         * dist; }
-         */
 
         // For each node in the solution:
-        // Find the max length of each
+        //     find the max length
         for (int i = 0; i < solution.length; i++) {
             int length = findMaxLength(used, solution[i], i);
             if (max < length) {
@@ -94,49 +143,6 @@ public class GraphSearch {
         }
 
         return max;
-    }
-
-    public boolean is_a_solution(Node solution[], int used[], int currIndex, int n) {
-        if (currIndex == solution.length - 1)
-            return true;
-        return false;
-
-    }
-
-    /**
-     * Abandon the partial solution if max length exceeds or equal to the minimum
-     * bandwidth previously found
-     * 
-     * @param solution
-     * @param used
-     * @param currIndex
-     * @return
-     */
-    public boolean endAttempt(Node solution[], int used[], int currIndex) {
-        int maxLength = findMaxLength(used, solution[currIndex], currIndex);
-        if (maxLength >= minBandwidth) {
-            return true;
-        }
-        return false;
-    }
-
-    private void process_solution(Node[] a, int used[], int n) {
-        int bandwidth = maxBandwidth(a, used);
-        if (bandwidth < minBandwidth) {
-            minBandwidth = bandwidth;
-            minmaxBandwidth = a;
-        }
-
-        if (minBandwidth == 1) {
-            finished = true;
-        }
-
-        System.out.println("Max bandwidth: " + bandwidth);
-        System.out.println("Min bandwidth: " + minBandwidth);
-        System.out.print("Curr array: ");
-        printArray(a);
-        System.out.print("Min array: ");
-        printArray(minmaxBandwidth);
     }
 
     private int construct_candidates(int[] used, int k, Node[] candidates, int n) {
@@ -150,7 +156,25 @@ public class GraphSearch {
         return index;
     }
 
-    private void printArray(Node arr[]) {
+    
+    private void makeMove(Node solution[], Node candidates[], int used[], int currIndex, int candIndex){
+        solution[currIndex] = candidates[candIndex]; // Places the current candidate into the solution at currIndex
+        used[candidates[candIndex].getID() - 1] = currIndex; // Stores the chosen node's location
+
+        //int maxLength = findMaxLength(used, solution[currIndex], currIndex);
+        //if(maxLength > 0)
+    }
+
+    private void unmakeMove(Node solution[], Node candidates[], int used[], int currIndex, int candIndex) {
+        solution[currIndex] = null; // Undos the node at the currIndex
+        used[candidates[candIndex].getID() - 1] = -1; // The node is no longer in solution[]
+    }
+
+    private Node[] getMinMaxBandwidth(){
+        return minmaxBandwidth;
+    }
+
+    public void printArray(Node arr[]) {
         for (int i = 0; i < arr.length; i++) {
             if (arr[i] != null)
                 System.out.print(arr[i].getID() + " ");

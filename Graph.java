@@ -12,16 +12,29 @@ public class Graph {
     public static void main(String args[]) {
         try {
             System.out.println("File 1:");
-            File file1 = new File("Test Files/g-bt-15-14");
+            File file1 = new File("Test Files/g-bt-14-13");
             createGraphFromFile(file1);
             GraphSearch file1Search = new GraphSearch(nodes);
             int positions[] = new int[nodes.length];
+            Node solution[] = new Node[nodes.length];
 
             for (int i = 0; i < positions.length; i++) {
                 positions[i] = -1;
             }
+            /*
+            file1Search.minBandwidth = 2;
+            solution[0] = nodes[0]; // NODE 1
+            positions[0] = 0;
+            solution[1] = nodes[5]; // NODE 6 
+            positions[5] = 1;
+            solution[2] = nodes[3]; // NODE 4
+            positions[3] = 2;
+            solution[3] = nodes[6]; // NODE 7
+            positions[6] = 3; file1Search.printArray(solution);
+            */ 
+            //System.out.println(file1Search.endAttempt(solution, positions, 2));
 
-            file1Search.backtrack(new Node[nodes.length], positions, -1, nodes.length - 1);
+            file1Search.backtrack(solution, positions, -1, nodes.length -1);
 
         } catch (Exception error) {
             System.out.println(error);
