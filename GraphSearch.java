@@ -20,15 +20,6 @@ public class GraphSearch {
     void backtrack(Node solution[], int used[], int currIndex, int n) {
         Node candidates[] = new Node[solution.length - currIndex - 1]; /* max candidates for next position */
 
-        // If able to endAttempt (because maxLength >= minBandwidth):
-        //     test next candidate
-
-        if (currIndex != -1 && endAttempt(solution, used, currIndex)) {
-            //System.out.print("END Attempt: ");
-            //printArray(solution);
-            return;
-        }
-
         if (currIndex != -1 && is_a_solution(solution, used, currIndex, n)) {
             process_solution(solution, used, n);
         } else {
@@ -37,8 +28,14 @@ public class GraphSearch {
             // printArray(solution);
 
             for (int candIndex = 0; candIndex < nc; candIndex++) {
+                int prevMax = currMax;
                 makeMove(solution, candidates, used, currIndex, candIndex);
-                backtrack(solution, used, currIndex, n);
+                //printArray(solution);
+                //System.out.println("PrevMax: " +prevMax + "  CurrMax: " + currMax);
+                if(currMax < minBandwidth){
+                    backtrack(solution, used, currIndex, n);
+                }
+                currMax = prevMax;
                 unmakeMove(solution, candidates, used, currIndex, candIndex);
                 if (finished) {
                     return; /* terminate early */
@@ -104,27 +101,25 @@ public class GraphSearch {
     }
 
     private void process_solution(Node[] a, int used[], int n) {
-        int bandwidth = maxBandwidth(a, used);
-        System.out.println("------------------------");
-        System.out.println(findMaxLength(used, a[a.length-1], a.length-1));
-        System.out.print("Curr array: ");
-        printArray(a);
-        if (bandwidth < minBandwidth) {
- 
-            minBandwidth = bandwidth;
+        //System.out.println("------------------------");
+        //System.out.print("Curr array: ");
+        //printArray(a);
+        if (currMax < minBandwidth) {
+            minBandwidth = currMax;
             minmaxBandwidth = a.clone();
         }
 
         if (minBandwidth == 1) {
             finished = true;
         }
-        System.out.println("Min bandwidth: " + minBandwidth);
+        //System.out.println("Min bandwidth: " + minBandwidth);
         
         
     }
 
     /**
      * Finds the max bandwidth in the fully processed solution
+     * (DEPRACATED)
      * 
      * @param solution 
      * @param used
@@ -160,9 +155,11 @@ public class GraphSearch {
     private void makeMove(Node solution[], Node candidates[], int used[], int currIndex, int candIndex){
         solution[currIndex] = candidates[candIndex]; // Places the current candidate into the solution at currIndex
         used[candidates[candIndex].getID() - 1] = currIndex; // Stores the chosen node's location
-
-        //int maxLength = findMaxLength(used, solution[currIndex], currIndex);
-        //if(maxLength > 0)
+        
+        int maxLength = findMaxLength(used, solution[currIndex], currIndex); // Max length from the currNode to components
+        if(maxLength > currMax){
+            currMax = maxLength;
+        }
     }
 
     private void unmakeMove(Node solution[], Node candidates[], int used[], int currIndex, int candIndex) {
@@ -170,7 +167,7 @@ public class GraphSearch {
         used[candidates[candIndex].getID() - 1] = -1; // The node is no longer in solution[]
     }
 
-    private Node[] getMinMaxBandwidth(){
+    public Node[] getMinMaxBandwidth(){
         return minmaxBandwidth;
     }
 

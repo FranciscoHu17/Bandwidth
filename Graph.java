@@ -35,7 +35,7 @@ public class Graph {
             //System.out.println(file1Search.endAttempt(solution, positions, 2));
 
             file1Search.backtrack(solution, positions, -1, nodes.length -1);
-
+            file1Search.printArray(file1Search.getMinMaxBandwidth());
         } catch (Exception error) {
             System.out.println(error);
         }
