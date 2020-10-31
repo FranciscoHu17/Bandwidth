@@ -1,9 +1,9 @@
 public class GraphSearch {
     private Node nodes[];
-    private boolean finished = false;
+    private boolean finished = false, jumpback = false;
     private int minBandwidth;
     private Node minmaxBandwidth[];
-    private int currMax;
+    private int currMax, currMaxIndex;
 
     /**
      * Initializes GraphSearch fields
@@ -15,6 +15,7 @@ public class GraphSearch {
         minBandwidth = nodes.length;
         minmaxBandwidth = new Node[nodes.length];
         currMax = 0;
+        currMaxIndex = -1;
     }
 
     void backtrack(Node solution[], int used[], int currIndex, int n) {
@@ -22,17 +23,41 @@ public class GraphSearch {
 
         if (currIndex != -1 && is_a_solution(solution, used, currIndex, n)) {
             process_solution(solution, used, n);
+            //System.out.println("^ solution  Min: " + minBandwidth + " currMaxIndex:" +currMaxIndex);
         } else {
             currIndex = currIndex + 1;
             int nc = construct_candidates(used, currIndex, candidates, n);
-            // printArray(solution);
+            //printArray(solution);
 
             for (int candIndex = 0; candIndex < nc; candIndex++) {
                 int prevMax = currMax;
+                /*if (currMaxIndex != -1 && currMaxIndex < currIndex && jumpback) {
+                    return;
+                }
+                else if(currMaxIndex != -1 && currMaxIndex >= currIndex && jumpback){
+                    currMaxIndex = -1;
+                    jumpback = false;
+                }*/
+                
+                //WIP
+                // If able to jumpback, but the currIndex is at the next candidate
+                //     Then cancel the jumpback and reset the currMaxIndex
+                if (jumpback && currMaxIndex >= currIndex) {
+                    currMaxIndex = -1;
+                    jumpback = false;
+                }
+                if(jumpback){
+                    return;
+                }
+
                 makeMove(solution, candidates, used, currIndex, candIndex);
                 //printArray(solution);
-                //System.out.println("PrevMax: " +prevMax + "  CurrMax: " + currMax);
+                //System.out.println("CurrMaxIndex: " + currMaxIndex);
+
                 if(currMax < minBandwidth){
+                    //System.out.print("Passed:");
+                    //printArray(solution);
+
                     backtrack(solution, used, currIndex, n);
                 }
                 currMax = prevMax;
@@ -44,57 +69,11 @@ public class GraphSearch {
         }
     }
 
-    /**
-     * Abandon the partial solution if max length exceeds or equal to the minimum
-     * bandwidth previously found
-     * 
-     * @param solution
-     * @param used
-     * @param currIndex
-     * @return
-     */
-    public boolean endAttempt(Node solution[], int used[], int currIndex) {
-        int maxLength = findMaxLength(used, solution[currIndex], currIndex);
-        
-        if (maxLength >= minBandwidth) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * This finds the max length from the current node to its connected nodes that
-     * are in partial solution[]
-     * 
-     * @param used      Array sorted in nodeID order that contains indicies of used
-     *                  nodes in partial solution[]
-     * @param currNode  The current node recently inserted
-     * @param currIndex The index of the current node in partial solution[]
-     * @return The max length between current node and its connections
-     */
-    public int findMaxLength(int used[], Node currNode, int currIndex) {
-        Node connected[] = currNode.getConnected();
-        int maxLength = 0;
-
-        for (int i = 0; i < connected.length; i++) {
-            int nodesIndex = connected[i].getID() - 1; // index of connected node in nodes[]
-            int solutionsIndex = used[nodesIndex]; // index of connected node in partial solution[]
-
-            // If the connected node is in partial solutions[] and it is bigger
-            // than current length:
-            //     Find the length from curr node to connected node
-            if (solutionsIndex != -1 && currIndex - solutionsIndex > maxLength) {
-                maxLength = currIndex - solutionsIndex;
-            }
-        }
-
-        return maxLength;
-    }
+    
 
     public boolean is_a_solution(Node solution[], int used[], int currIndex, int n) {
         if (currIndex == solution.length - 1){
             return true;
-            //return maxBandwidth(solution, used) < minBandwidth;
         }
         return false;
 
@@ -104,6 +83,7 @@ public class GraphSearch {
         //System.out.println("------------------------");
         //System.out.print("Curr array: ");
         //printArray(a);
+        jumpback = true;
         if (currMax < minBandwidth) {
             minBandwidth = currMax;
             minmaxBandwidth = a.clone();
@@ -117,28 +97,6 @@ public class GraphSearch {
         
     }
 
-    /**
-     * Finds the max bandwidth in the fully processed solution
-     * (DEPRACATED)
-     * 
-     * @param solution 
-     * @param used
-     * @return
-     */
-    public int maxBandwidth(Node solution[], int used[]) {
-        int max = 0;
-
-        // For each node in the solution:
-        //     find the max length
-        for (int i = 0; i < solution.length; i++) {
-            int length = findMaxLength(used, solution[i], i);
-            if (max < length) {
-                max = length;
-            }
-        }
-
-        return max;
-    }
 
     private int construct_candidates(int[] used, int k, Node[] candidates, int n) {
         int index = 0;
@@ -159,7 +117,38 @@ public class GraphSearch {
         int maxLength = findMaxLength(used, solution[currIndex], currIndex); // Max length from the currNode to components
         if(maxLength > currMax){
             currMax = maxLength;
+            currMaxIndex = currIndex;
         }
+    }
+
+    /**
+     * This finds the max length from the current node to its connected nodes that
+     * are in partial solution[]
+     * 
+     * @param used      Array sorted in nodeID order that contains indicies of used
+     *                  nodes in partial solution[]
+     * @param currNode  The current node recently inserted
+     * @param currIndex The index of the current node in partial solution[]
+     * @return The max length between current node and its connections
+     */
+    public int findMaxLength(int used[], Node currNode, int currIndex) {
+        Node connected[] = currNode.getConnected();
+        int maxLength = 0;
+
+        // Loops through each node that's connected to currNode
+        for (int i = 0; i < connected.length; i++) {
+            int nodesIndex = connected[i].getID() - 1; // index of connected node in nodes[]
+            int solutionsIndex = used[nodesIndex]; // index of connected node in partial solution[]
+
+            // If the connected node is in partial solutions[] and it is bigger
+            // than current length:
+            // Find the length from curr node to connected node
+            if (solutionsIndex != -1 && currIndex - solutionsIndex > maxLength) {
+                maxLength = currIndex - solutionsIndex;
+            }
+        }
+
+        return maxLength;
     }
 
     private void unmakeMove(Node solution[], Node candidates[], int used[], int currIndex, int candIndex) {
@@ -168,6 +157,7 @@ public class GraphSearch {
     }
 
     public Node[] getMinMaxBandwidth(){
+        System.out.println("Bandwidth: " + minBandwidth);
         return minmaxBandwidth;
     }
 

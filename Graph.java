@@ -12,7 +12,7 @@ public class Graph {
     public static void main(String args[]) {
         try {
             System.out.println("File 1:");
-            File file1 = new File("Test Files/g-bt-14-13");
+            File file1 = new File("Test Files/g-gg-15-22");
             createGraphFromFile(file1);
             GraphSearch file1Search = new GraphSearch(nodes);
             int positions[] = new int[nodes.length];
