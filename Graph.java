@@ -12,7 +12,7 @@ public class Graph {
     public static void main(String args[]) {
         try {
             System.out.println("File 1:");
-            File file1 = new File("Test Files/g-gg-15-22");
+            File file1 = new File("Test Files/g-bt-15-14");
             createGraphFromFile(file1);
             GraphSearch file1Search = new GraphSearch(nodes);
             int positions[] = new int[nodes.length];
@@ -33,7 +33,10 @@ public class Graph {
             positions[6] = 3; file1Search.printArray(solution);
             */ 
             //System.out.println(file1Search.endAttempt(solution, positions, 2));
-
+            //IDEAS:
+            // degree/2
+            // construct candidates in accending order of degrees or randomization
+            // reversed permutation is same as forward
             file1Search.backtrack(solution, positions, -1, nodes.length -1);
             file1Search.printArray(file1Search.getMinMaxBandwidth());
         } catch (Exception error) {

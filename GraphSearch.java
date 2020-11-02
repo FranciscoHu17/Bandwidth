@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 public class GraphSearch {
     private Node nodes[];
     private boolean finished = false, jumpback = false;
@@ -16,6 +18,13 @@ public class GraphSearch {
         minmaxBandwidth = new Node[nodes.length];
         currMax = 0;
         currMaxIndex = -1;
+        Arrays.sort(nodes);
+
+        //nodes = temp.clone();
+        /*for(int i = 0; i< nodes.length; i++){
+            System.out.println("Node ID "+ nodes[i].getID() + "   DEGREE " + nodes[i].getDegree());
+        }*/
+        
     }
 
     void backtrack(Node solution[], int used[], int currIndex, int n) {

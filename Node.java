@@ -1,7 +1,8 @@
 import java.util.*;
 
-public class Node {
+public class Node implements Comparable<Node>{
     private int nodeID;
+    private int degree;
     private ArrayList<Node> connected;
 
     /**
@@ -12,6 +13,7 @@ public class Node {
     public Node(int id) {
         nodeID = id;
         connected = new ArrayList<>();
+        degree = 0;
     }
 
     /**
@@ -49,5 +51,16 @@ public class Node {
      */
     public void addConnectedNode(Node node) {
         connected.add(node);
+        degree++;
+    }
+
+    public int getDegree(){
+        return degree;
+    }
+
+    @Override
+    public int compareTo(Node o) {
+        // TODO Auto-generated method stub
+        return  degree - o.getDegree();
     }
 }
