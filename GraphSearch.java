@@ -20,7 +20,6 @@ public class GraphSearch {
         currMaxIndex = -1;
         Arrays.sort(nodes);
 
-        //nodes = temp.clone();
         /*for(int i = 0; i< nodes.length; i++){
             System.out.println("Node ID "+ nodes[i].getID() + "   DEGREE " + nodes[i].getDegree());
         }*/
@@ -168,6 +167,10 @@ public class GraphSearch {
     public Node[] getMinMaxBandwidth(){
         System.out.println("Bandwidth: " + minBandwidth);
         return minmaxBandwidth;
+    }
+
+    public boolean possibleWithMin2(){
+        return true;
     }
 
     public void printArray(Node arr[]) {
