@@ -5,7 +5,7 @@ public class GraphSearch {
     private int taken[];
     private int nodesMatrix[][];
     private boolean finished = false, jumpback = false;
-    private int minBandwidth, start;
+    private int minBandwidth;
     private int minmaxBandwidth[];
     private int currMax, currMaxIndex;
 
@@ -18,7 +18,6 @@ public class GraphSearch {
         //this.nodes = nodes;
         this.nodesMatrix = nodesMatrix;
         this.allCandidates = allCandidates;
-        start = allCandidates[0].getID();
         taken = new int[allCandidates.length];
         minBandwidth = nodesMatrix.length;
         minmaxBandwidth = new int[allCandidates.length];
@@ -50,9 +49,6 @@ public class GraphSearch {
             //printArray(solution);
 
             for (int candIndex = 0; candIndex < nc; candIndex++) {
-                if(currIndex == 0){
-                    start = candidates[candIndex];
-                }
                 int prevMax = currMax;
                 //WIP
                 // If able to jumpback, but the currIndex is at the next candidate
