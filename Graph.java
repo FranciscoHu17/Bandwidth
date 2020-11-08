@@ -1,7 +1,9 @@
 import java.io.*;
 
 public class Graph {
-    private static Node nodes[];
+    //private static Node nodes[];
+    private static Node allCandidates[];
+    private static int nodesMatrix[][];
 
     /**
      * Runs the program that creates the graph by reading the file and outputting
@@ -12,30 +14,15 @@ public class Graph {
     public static void main(String args[]) {
         try {
             System.out.println("File 1:");
-            File file1 = new File("Test Files/g-p-17-16");
+            File file1 = new File("Test Files/g-p-18-17");
             createGraphFromFile(file1);
-            GraphSearch file1Search = new GraphSearch(nodes);
-            int positions[] = new int[nodes.length];
-            Node solution[] = new Node[nodes.length];
+            GraphSearch file1Search = new GraphSearch(allCandidates,nodesMatrix);
+            int solution[] = new int[nodesMatrix.length];
 
-            for (int i = 0; i < positions.length; i++) {
-                positions[i] = -1;
+            for (int i = 0; i < solution.length; i++) {
+                solution[i] = -1;
             }
-            /*
-            file1Search.minBandwidth = 2;
-            solution[0] = nodes[0]; // NODE 1
-            positions[0] = 0;
-            solution[1] = nodes[5]; // NODE 6 
-            positions[5] = 1;
-            solution[2] = nodes[3]; // NODE 4
-            positions[3] = 2;
-            solution[3] = nodes[6]; // NODE 7
-            positions[6] = 3; file1Search.printArray(solution);
-            */ 
-            //System.out.println(file1Search.endAttempt(solution, positions, 2));
-            //IDEAS:
-            // reversed permutation is same as forward
-            file1Search.backtrack(solution, positions, -1, nodes.length -1);
+            file1Search.backtrack(solution, -1);
             file1Search.printArray(file1Search.getMinMaxBandwidth());
         } catch (Exception error) {
             System.out.println(error);
@@ -70,14 +57,18 @@ public class Graph {
     }
 
     /**
-     * Initializes the nodes[] variable
+     * Initializes the nodesmatrix[][] variable
      * 
      * @param vertices The amount of vertices in the graph
      */
     public static void initNodes(int vertices) {
-        nodes = new Node[vertices];
-        for (int i = 0; i < vertices; i++) {
-            nodes[i] = new Node(i + 1);
+        allCandidates = new Node[vertices];
+        nodesMatrix = new int[vertices][vertices];
+        for (int r = 0; r < vertices; r++) {
+            allCandidates[r] = new Node(r + 1);
+            for(int c = 0; c < vertices; c++){
+                nodesMatrix[r][c] = 0;
+            }
         }
     }
 
@@ -90,7 +81,22 @@ public class Graph {
         int space = str.indexOf(" ");
         int vertex1 = Integer.parseInt(str.substring(0, space));
         int vertex2 = Integer.parseInt(str.substring(space + 1).trim());
-        nodes[vertex1 - 1].addConnectedNode(nodes[vertex2 - 1]);
-        nodes[vertex2 - 1].addConnectedNode(nodes[vertex1 - 1]);
+        nodesMatrix[vertex1 - 1][vertex2 - 1] = 1;
+        nodesMatrix[vertex2 - 1][vertex1 - 1] = 1;
+        allCandidates[vertex1 - 1].incrementDegree();
+        allCandidates[vertex2 - 1].incrementDegree();
     }
+
+    public static void printMatrix(){
+        for(int r = 0; r < nodesMatrix.length; r++){
+            for(int c = 0; c < nodesMatrix[r].length; c++){
+                System.out.print(nodesMatrix[r][c] + " ");
+            }
+            System.out.println();
+        }
+    }
+    
+    
+
+    
 }

@@ -1,75 +1,83 @@
 import java.util.Arrays;
 
 public class GraphSearch {
-    private Node nodes[];
+    private Node allCandidates[];
+    private int taken[];
+    private int nodesMatrix[][];
     private boolean finished = false, jumpback = false;
-    private int minBandwidth;
-    private Node minmaxBandwidth[];
+    private int minBandwidth, start;
+    private int minmaxBandwidth[];
     private int currMax, currMaxIndex;
 
     /**
      * Initializes GraphSearch fields
      * 
-     * @param nodes The array of nodes of the graph
+     * @param allCandidates The array of nodes of the graph
      */
-    public GraphSearch(Node nodes[]) {
-        this.nodes = nodes;
-        minBandwidth = nodes.length;
-        minmaxBandwidth = new Node[nodes.length];
+    public GraphSearch(Node allCandidates[], int nodesMatrix[][]) {
+        //this.nodes = nodes;
+        this.nodesMatrix = nodesMatrix;
+        this.allCandidates = allCandidates;
+        start = allCandidates[0].getID();
+        taken = new int[allCandidates.length];
+        minBandwidth = nodesMatrix.length;
+        minmaxBandwidth = new int[allCandidates.length];
         currMax = 0;
         currMaxIndex = -1;
-        Arrays.sort(nodes);
 
-        /*for(int i = 0; i< nodes.length; i++){
-            System.out.println("Node ID "+ nodes[i].getID() + "   DEGREE " + nodes[i].getDegree());
+        Arrays.sort(allCandidates);
+
+        /*for(int i = 0; i< allCandidates.length; i++){
+            System.out.println("Node ID "+ allCandidates[i].getID() + "   DEGREE " + allCandidates[i].getDegree());
         }*/
         
     }
 
-    void backtrack(Node solution[], int used[], int currIndex, int n) {
-        Node candidates[] = new Node[solution.length - currIndex - 1]; /* max candidates for next position */
+    void backtrack(int solution[], int currIndex) {
+        int candidates[] = new int[solution.length - currIndex - 1]; /* max candidates for next position */
 
-        if (currIndex != -1 && is_a_solution(solution, used, currIndex, n)) {
-            process_solution(solution, used, n);
+        if (currIndex != -1 && is_a_solution(solution, currIndex)) {
+            process_solution(solution);
+            //printArray(solution);
             //System.out.println("^ solution  Min: " + minBandwidth + " currMaxIndex:" +currMaxIndex);
         } else {
             currIndex = currIndex + 1;
-            int nc = construct_candidates(used, currIndex, candidates, n);
+            int nc = construct_candidates(solution, candidates, currIndex);
+            if(currIndex == 0){
+                nc--;
+            }
+            //System.out.print("CURR MAX: " + currMax + " CURR MAX INDEX " +currMaxIndex + "||| ");
             //printArray(solution);
 
             for (int candIndex = 0; candIndex < nc; candIndex++) {
-                int prevMax = currMax;
-                /*if (currMaxIndex != -1 && currMaxIndex < currIndex && jumpback) {
-                    return;
+                if(currIndex == 0){
+                    start = candidates[candIndex];
                 }
-                else if(currMaxIndex != -1 && currMaxIndex >= currIndex && jumpback){
-                    currMaxIndex = -1;
-                    jumpback = false;
-                }*/
-                
+                int prevMax = currMax;
                 //WIP
                 // If able to jumpback, but the currIndex is at the next candidate
                 //     Then cancel the jumpback and reset the currMaxIndex
                 if (jumpback && currMaxIndex >= currIndex) {
-                    currMaxIndex = -1;
+                    currMaxIndex = currIndex;
                     jumpback = false;
                 }
                 if(jumpback){
                     return;
                 }
 
-                makeMove(solution, candidates, used, currIndex, candIndex);
-                //printArray(solution);
+                makeMove(solution, candidates, currIndex, candIndex);
+                
                 //System.out.println("CurrMaxIndex: " + currMaxIndex);
 
                 if(currMax < minBandwidth){
                     //System.out.print("Passed:");
                     //printArray(solution);
 
-                    backtrack(solution, used, currIndex, n);
+                    backtrack(solution, currIndex);
                 }
+                //printArray(solution);
                 currMax = prevMax;
-                unmakeMove(solution, candidates, used, currIndex, candIndex);
+                unmakeMove(solution, candidates, currIndex, candIndex);
                 if (finished) {
                     return; /* terminate early */
                 }
@@ -79,7 +87,7 @@ public class GraphSearch {
 
     
 
-    public boolean is_a_solution(Node solution[], int used[], int currIndex, int n) {
+    public boolean is_a_solution(int solution[], int currIndex) {
         if (currIndex == solution.length - 1){
             return true;
         }
@@ -87,14 +95,14 @@ public class GraphSearch {
 
     }
 
-    private void process_solution(Node[] a, int used[], int n) {
+    private void process_solution(int[] solution) {
         //System.out.println("------------------------");
         //System.out.print("Curr array: ");
         //printArray(a);
         jumpback = true;
         if (currMax < minBandwidth) {
             minBandwidth = currMax;
-            minmaxBandwidth = a.clone();
+            minmaxBandwidth = solution.clone();
         }
 
         if (minBandwidth == 1) {
@@ -106,11 +114,11 @@ public class GraphSearch {
     }
 
 
-    private int construct_candidates(int[] used, int k, Node[] candidates, int n) {
+    private int construct_candidates(int solution[], int candidates[], int currIndex) {
         int index = 0;
-        for (int i = 0; i < nodes.length; i++) {
-            if (used[nodes[i].getID() - 1] == -1) {
-                candidates[index] = nodes[i];
+        for (int i = 0; i < allCandidates.length; i++) {
+            if(taken[allCandidates[i].getID() - 1] != 1){   // If node is not taken then add it to candidate
+                candidates[index] = allCandidates[i].getID();
                 index++;
             }
         }
@@ -118,12 +126,13 @@ public class GraphSearch {
     }
 
     
-    private void makeMove(Node solution[], Node candidates[], int used[], int currIndex, int candIndex){
+    private void makeMove(int solution[], int candidates[], int currIndex, int candIndex){
         solution[currIndex] = candidates[candIndex]; // Places the current candidate into the solution at currIndex
-        used[candidates[candIndex].getID() - 1] = currIndex; // Stores the chosen node's location
+        taken[candidates[candIndex] - 1] = 1; // Marks that candidate as taken
         
-        int maxLength = findMaxLength(used, solution[currIndex], currIndex); // Max length from the currNode to components
+        int maxLength = findMaxLength(solution, solution[currIndex], currIndex); // Max length from the currNode to components
         if(maxLength > currMax){
+
             currMax = maxLength;
             currMaxIndex = currIndex;
         }
@@ -133,38 +142,31 @@ public class GraphSearch {
      * This finds the max length from the current node to its connected nodes that
      * are in partial solution[]
      * 
-     * @param used      Array sorted in nodeID order that contains indicies of used
-     *                  nodes in partial solution[]
+     * @param solution  Partial solution
      * @param currNode  The current node recently inserted
      * @param currIndex The index of the current node in partial solution[]
      * @return The max length between current node and its connections
      */
-    public int findMaxLength(int used[], Node currNode, int currIndex) {
-        Node connected[] = currNode.getConnected();
+    public int findMaxLength(int solution[], int currNode, int currIndex) {
         int maxLength = 0;
 
         // Loops through each node that's connected to currNode
-        for (int i = 0; i < connected.length; i++) {
-            int nodesIndex = connected[i].getID() - 1; // index of connected node in nodes[]
-            int solutionsIndex = used[nodesIndex]; // index of connected node in partial solution[]
-
-            // If the connected node is in partial solutions[] and it is bigger
-            // than current length:
-            // Find the length from curr node to connected node
-            if (solutionsIndex != -1 && currIndex - solutionsIndex > maxLength) {
-                maxLength = currIndex - solutionsIndex;
+        for (int i = 0; i < currIndex; i++) {
+            if(nodesMatrix[currNode -1][solution[i] - 1] == 1){
+                if(currIndex - i > maxLength)
+                    maxLength = currIndex - i;
             }
         }
 
         return maxLength;
     }
 
-    private void unmakeMove(Node solution[], Node candidates[], int used[], int currIndex, int candIndex) {
-        solution[currIndex] = null; // Undos the node at the currIndex
-        used[candidates[candIndex].getID() - 1] = -1; // The node is no longer in solution[]
+    private void unmakeMove(int solution[], int candidates[], int currIndex, int candIndex) {
+        solution[currIndex] = -1; // Undos the node at the currIndex
+        taken[candidates[candIndex] - 1] = 0; // Remove candidate from taken
     }
 
-    public Node[] getMinMaxBandwidth(){
+    public int[] getMinMaxBandwidth(){
         System.out.println("Bandwidth: " + minBandwidth);
         return minmaxBandwidth;
     }
@@ -172,13 +174,10 @@ public class GraphSearch {
     public boolean possibleWithMin2(){
         return true;
     }
-
-    public void printArray(Node arr[]) {
+    
+    public void printArray(int arr[]) {
         for (int i = 0; i < arr.length; i++) {
-            if (arr[i] != null)
-                System.out.print(arr[i].getID() + " ");
-            else
-                System.out.print("null ");
+            System.out.print(arr[i] + " ");
         }
         System.out.println();
     }
