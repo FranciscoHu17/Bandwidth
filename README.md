@@ -11,14 +11,14 @@ minimizes the maximum length of the edges in G, as is any permutation where 1 is
 My approach to the bandwidth problem is to use dynamic programming to look through every permutation, but 
 prune(optimize) to efficiently find the correct solution and to avoid permutations that will not yield the solution.
 
-Interesting Optimizations:  
+**Interesting Optimizations:**   
 * Throughout the program it keeps track of the max length bandwidth it has encountered so far. If the  max length bandwidth is greater than the current minimum bandwidth then it abandons that run and moves to the next candidate  
 * Once the program gets process_solution, it jumps back to the index in which the minimum of the max length bandwidth was found  
 * Sorting the candidates by their degrees in ascending order  
 * Converted adjacency list to adjacency matrix  
 * Removing the last candidate for the first position  
 
-Times:  
+**Times:**    
 * g-bt-15-14 file:  44 seconds  
 * g-gg-15-22 file: 5 seconds  
 * g-p-18-17 file: 26 seconds  
