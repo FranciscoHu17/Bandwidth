@@ -8,8 +8,8 @@ mapping vi → i, the last edge spans a distance of four (ie. 5-1). However, the
 is better, for none of the edges spans a distance of more than two. In fact, it is a permutation which 
 minimizes the maximum length of the edges in G, as is any permutation where 1 is in the center.
 
-My approach to the bandwidth problem is to use dynamic programming to look through every permutation, but 
-prune(optimize) to efficiently find the correct solution and to avoid permutations that will not yield the solution.
+My approach to the bandwidth problem is to use backtracking to look through every permutation, but 
+prune (optimize) to efficiently find the correct solution and to avoid permutations that will not yield the solution.
 
 **Interesting Optimizations:**   
 * Throughout the program it keeps track of the max length bandwidth it has encountered so far. If the  max length bandwidth is greater than the current minimum bandwidth then it abandons that run and moves to the next candidate  
