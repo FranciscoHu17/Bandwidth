@@ -1,4 +1,4 @@
-# cse373bandwidth
+# Bandwidth
 
 The bandwidth problem takes as input a graph G, with n vertices and m edges (ie. pairs of vertices).
 The goal is to find a permutation of the vertices on the line which minimizes the maximum length of any
